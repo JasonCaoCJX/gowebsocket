@@ -265,6 +265,7 @@
             </div>
         </div>
         <div class="room-list">
+            <button onclick="exit()">关闭连接</button>
             <div>
                 <b>房间列表:</b><br>
                <a href="/home/index?appID=101">聊天室-ID:101</a>
@@ -355,6 +356,11 @@
 
         function delUserList(name) {
             $("#" + name).remove();
+        }
+
+        function exit() {
+            console.log("退出")
+            ws.close();
         }
 
 

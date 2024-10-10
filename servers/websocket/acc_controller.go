@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/link1st/gowebsocket/v2/common"
+	"github.com/link1st/gowebsocket/v2/database"
 	"github.com/link1st/gowebsocket/v2/lib/cache"
 	"github.com/link1st/gowebsocket/v2/models"
 
@@ -36,11 +37,11 @@ func LoginController(client *Client, seq string, message []byte) (code uint32, m
 
 	// TODO::进行用户权限认证，一般是客户端传入TOKEN，然后检验TOKEN是否合法，通过TOKEN解析出来用户ID
 	// 本项目只是演示，所以直接过去客户端传入的用户ID
-	if request.UserID == "" || len(request.UserID) >= 20 {
-		code = common.UnauthorizedUserID
-		fmt.Println("用户登录 非法的用户", seq, request.UserID)
-		return
-	}
+	// if request.UserID == "" || len(request.UserID) >= 20 {
+	// 	code = common.UnauthorizedUserID
+	// 	fmt.Println("用户登录 非法的用户", seq, request.UserID)
+	// 	return
+	// }
 	if !InAppIDs(request.AppID) {
 		code = common.Unauthorized
 		fmt.Println("用户登录 不支持的平台", seq, request.AppID)
@@ -51,6 +52,17 @@ func LoginController(client *Client, seq string, message []byte) (code uint32, m
 		code = common.OperationFailure
 		return
 	}
+
+	// Generate a new UserID using nanoid
+	// newUserID, err := common.GenerateNanoId(21)
+	// if err != nil {
+	// 	code = common.ServerError
+	// 	fmt.Println("用户登录 生成UserID失败", seq, err)
+	// 	return
+	// }
+
+	newUserID := common.GenerateSnowflakeID()
+
 	client.Login(request.AppID, request.UserID, currentTime)
 
 	// 存储数据
@@ -62,15 +74,27 @@ func LoginController(client *Client, seq string, message []byte) (code uint32, m
 		return
 	}
 
-	// 用户登录
+	// 用户websocket登录
 	login := &login{
-		AppID:  request.AppID,
-		UserID: request.UserID,
-		Client: client,
+		AppID:    request.AppID,
+		UserID:   newUserID,
+		NickName: request.UserID,
+		Client:   client,
 	}
 	clientManager.Login <- login
-	fmt.Println("用户登录 成功", seq, client.Addr, request.UserID)
 
+	// 将用户登录信息放入消息队列，保存到数据库
+	userLoginInfo := &models.UserLoginInfo{
+		UserId:    newUserID,
+		NickName:  request.UserID,
+		LoginTime: time.Now(),
+	}
+	database.AddUserToQueue(userLoginInfo)
+
+	// Return the new UserID to the client
+	data = map[string]string{
+		"userId": newUserID,
+	}
 	return
 }
 

@@ -10,12 +10,25 @@ const (
 	heartbeatTimeout = 3 * 60 // 用户心跳超时时间
 )
 
+// UserLoginInfo 用户登录信息
+//
+//	type UserLoginInfo struct {
+//		PhoneNumber string
+//		LoginTime   time.Time
+//	}
+type UserLoginInfo struct {
+	UserId    string
+	NickName  string
+	LoginTime time.Time
+}
+
 // UserOnline 用户在线状态
 type UserOnline struct {
 	AccIp         string `json:"accIp"`         // acc Ip
 	AccPort       string `json:"accPort"`       // acc 端口
 	AppID         uint32 `json:"appID"`         // appID
 	UserID        string `json:"userID"`        // 用户ID
+	NickName      string `json:"nickName"`      // 用户昵称
 	ClientIp      string `json:"clientIp"`      // 客户端Ip
 	ClientPort    string `json:"clientPort"`    // 客户端端口
 	LoginTime     uint64 `json:"loginTime"`     // 用户上次登录时间

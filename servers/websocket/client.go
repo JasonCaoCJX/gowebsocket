@@ -15,9 +15,10 @@ const (
 
 // 用户登录
 type login struct {
-	AppID  uint32
-	UserID string
-	Client *Client
+	AppID    uint32
+	UserID   string
+	NickName string
+	Client   *Client
 }
 
 // GetKey 获取 key
